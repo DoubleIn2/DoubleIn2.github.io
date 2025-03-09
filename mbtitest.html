@@ -1,0 +1,247 @@
+<!DOCTYPE html>
+<html lang="pt-PT">
+<head>
+    <meta charset="UTF-8">
+    <title>Teste MBTI Simplificado</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            max-width: 800px;
+            margin: 0 auto;
+            padding: 20px;
+            background-color: #f0f8ff;
+        }
+        .question-container {
+            background-color: white;
+            padding: 20px;
+            border-radius: 10px;
+            box-shadow: 0 0 10px rgba(0,0,0,0.1);
+            margin-bottom: 20px;
+        }
+        .options {
+            display: flex;
+            flex-direction: column;
+            gap: 10px;
+            margin: 20px 0;
+        }
+        .option-btn {
+            color: #333; /* 新增這行 */
+        
+        }
+        .option-btn.selected {
+            color: white !important; /* 強化這行 */
+        }
+        button {
+            padding: 10px 20px;
+            margin: 5px;
+            cursor: pointer;
+            background-color: #4CAF50;
+            color: white;
+            border: none;
+            border-radius: 5px;
+        }
+        button:hover {
+            background-color: #45a049;
+        }
+        .hidden {
+            display: none;
+        }
+        .result {
+            font-size: 24px;
+            color: #2c3e50;
+            font-weight: bold;
+            text-align: center;
+            padding: 20px;
+        }
+        .progress {
+            margin-bottom: 10px;
+            color: #666;
+        }
+        .option-btn {
+            padding: 15px;
+            text-align: left;
+            transition: all 0.3s;
+            border: 2px solid #ddd;
+            border-radius: 8px;
+            background-color: #f8f9fa;
+        }
+        .option-btn:hover {
+            background-color: #e9ecef;
+            transform: translateY(-2px);
+        }
+        .option-btn.selected {
+            background-color: #4CAF50 !important;
+            color: white;
+            border-color: #45a049;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+        }
+    </style>
+</head>
+<body>
+    <div class="progress">Pergunta <span id="current-question">1</span>/12</div>
+    <div id="question-container" class="question-container">
+        <div id="question-text"></div>
+        <div class="options" id="options"></div>
+        <button onclick="nextQuestion()" id="next-btn" disabled>Próxima Pergunta</button>
+    </div>
+    <div id="result-container" class="hidden result"></div>
+
+    <script>
+        const questions = [
+            // Dimensão E/I
+            { 
+                question: "1. Em qual situação você recarrega energias?",
+                options: [
+                    { text: "Saindo com amigos/família", value: "E" },
+                    { text: "Ficando sozinho(a) a ver séries/jogar", value: "I" }
+                ]
+            },
+            {
+                question: "2. Quando está stressado(a), você:",
+                options: [
+                    { text: "Procura amigos ou atividades sociais", value: "E" },
+                    { text: "Prefere pensar sozinho(a) ou fazer hobbies", value: "I" }
+                ]
+            },
+            {
+                question: "3. Em eventos sociais, você normalmente:",
+                options: [
+                    { text: "Conversa com desconhecidos ativamente", value: "E" },
+                    { text: "Fica com conhecidos ou observa em silêncio", value: "I" }
+                ]
+            },
+
+            // Dimensão N/S
+            {
+                question: "4. Ao aprender algo novo, você prefere:",
+                options: [
+                    { text: "Pensar de forma abstrata e criativa", value: "N" },
+                    { text: "Seguir instruções claras e práticas", value: "S" }
+                ]
+            },
+            {
+                question: "5. Qual descrição você prefere?",
+                options: [
+                    { text: "\"O futuro é cheio de possibilidades a explorar\"", value: "N" },
+                    { text: "\"Foco nos detalhes concretos e planos realistas\"", value: "S" }
+                ]
+            },
+            {
+                question: "6. Ao resolver problemas, você:",
+                options: [
+                    { text: "Analisa o panorama geral primeiro", value: "N" },
+                    { text: "Concentra-se nos detalhes passo a passo", value: "S" }
+                ]
+            },
+
+            // Dimensão T/F
+            {
+                question: "7. Na comunicação, você prioriza:",
+                options: [
+                    { text: "Lógica e justiça objetiva", value: "T" },
+                    { text: "Harmonia e sentimentos alheios", value: "F" }
+                ]
+            },
+            {
+                question: "8. Ao tomar decisões, você considera mais:",
+                options: [
+                    { text: "Eficiência e correção técnica", value: "T" },
+                    { text: "Valores pessoais e empatia", value: "F" }
+                ]
+            },
+            {
+                question: "9. Em desacordos, você tende a:",
+                options: [
+                    { text: "Defender abertamente sua posição", value: "T" },
+                    { text: "Evitar conflitos e acomodar", value: "F" }
+                ]
+            },
+
+            // Dimensão J/P
+            {
+                question: "10. Antes de viajar, você:",
+                options: [
+                    { text: "Planeja cada detalhe cuidadosamente", value: "J" },
+                    { text: "Decide improvisando no local", value: "P" }
+                ]
+            },
+            {
+                question: "11. Qual estilo de vida você prefere?",
+                options: [
+                    { text: "Organizado e com rotina definida", value: "J" },
+                    { text: "Flexível e espontâneo", value: "P" }
+                ]
+            },
+            {
+                question: "12. Ao executar tarefas, você:",
+                options: [
+                    { text: "Segue um plano pré-estabelecido", value: "J" },
+                    { text: "Adapta-se conforme a situação", value: "P" }
+                ]
+            }
+        ];
+
+        // ...（保持JavaScript邏輯不變，只修改顯示文字）...
+        
+        let currentQuestion = 0;
+        let answers = { E:0, I:0, N:0, S:0, T:0, F:0, J:0, P:0 };
+
+        function showQuestion() {
+            document.getElementById('question-text').textContent = questions[currentQuestion].question;
+            const optionsDiv = document.getElementById('options');
+            optionsDiv.innerHTML = '';
+            
+            questions[currentQuestion].options.forEach(option => {
+                const btn = document.createElement('button');
+                btn.className = 'option-btn';
+                btn.textContent = option.text;
+                btn.onclick = () => selectOption(btn, option.value);
+                optionsDiv.appendChild(btn);
+            });
+
+            document.getElementById('current-question').textContent = currentQuestion + 1;
+            document.getElementById('next-btn').disabled = true; // 重置下一题按钮状态
+        }
+        
+        function selectOption(clickedBtn, value) {
+            const options = clickedBtn.parentElement.children;
+            for(let btn of options) {
+                btn.classList.remove('selected');
+            }
+            clickedBtn.classList.add('selected');
+            
+            // 修正：直接记录选择的维度值（例如选择 "E" 则 E+1）
+            const dimension = value; // 直接使用选项的 value（E/I/N/S...）
+            answers[dimension]++;   // 累加计数
+            
+            document.getElementById('next-btn').disabled = false;
+        }
+
+        // 新增完整的 nextQuestion 函数
+        function nextQuestion() {
+            currentQuestion++;
+            if (currentQuestion < questions.length) {
+                showQuestion();
+            } else {
+                showResult();
+            }
+        }
+
+        function showResult() {
+            document.querySelector('.progress').classList.add('hidden');
+            const mbti = [
+                answers.E > answers.I ? 'E' : 'I',
+                answers.N > answers.S ? 'N' : 'S',
+                answers.T > answers.F ? 'T' : 'F',
+                answers.J > answers.P ? 'J' : 'P'
+            ].join('');
+
+            document.getElementById('result-container').textContent = `O teu tipo de personalidade MBTI é: ${mbti}`;
+            document.getElementById('question-container').classList.add('hidden');
+            document.getElementById('result-container').classList.remove('hidden');
+        }
+
+        showQuestion();
+    </script>
+</body>
+</html>
